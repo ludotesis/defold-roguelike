@@ -74,7 +74,7 @@ animations {
     image: "/Assets/sprites/item_moneda_oro_b.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
-  fps: 10
+  fps: 6
 }
 animations {
   id: "animacion_moneda_plata"
@@ -85,6 +85,6 @@ animations {
     image: "/Assets/sprites/item_moneda_plata_b.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
-  fps: 10
+  fps: 6
 }
 extrude_borders: 2
