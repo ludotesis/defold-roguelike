@@ -1,0 +1,85 @@
+images {
+  image: "/assets/sprites/item_antorcha.png"
+}
+images {
+  image: "/assets/sprites/item_bolafuego.png"
+}
+images {
+  image: "/assets/sprites/item_bomba.png"
+}
+images {
+  image: "/assets/sprites/item_corazon.png"
+}
+images {
+  image: "/assets/sprites/item_estrella.png"
+}
+images {
+  image: "/assets/sprites/item_peso.png"
+}
+images {
+  image: "/assets/sprites/item_sierra.png"
+}
+images {
+  image: "/assets/sprites/item_trampa.png"
+}
+animations {
+  id: "animacion_jugador"
+  images {
+    image: "/assets/sprites/personaje_caminar_a.png"
+  }
+  images {
+    image: "/assets/sprites/personaje_caminar_b.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+}
+animations {
+  id: "animacion_enemigo_abeja"
+  images {
+    image: "/assets/sprites/enemigo_abeja_a.png"
+  }
+  images {
+    image: "/assets/sprites/enemigo_abeja_b.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+}
+animations {
+  id: "animacion_enemigo_bloque"
+  images {
+    image: "/assets/sprites/enemigo_bloque_a.png"
+  }
+  images {
+    image: "/assets/sprites/enemigo_bloque_b.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+}
+animations {
+  id: "animacion_enemigo_fuego"
+  images {
+    image: "/assets/sprites/enemigo_fuego_a.png"
+  }
+  images {
+    image: "/assets/sprites/enemigo_fuego_b.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+}
+animations {
+  id: "animacion_moneda_oro"
+  images {
+    image: "/assets/sprites/item_moneda_oro_a.png"
+  }
+  images {
+    image: "/assets/sprites/item_moneda_oro_b.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+}
+animations {
+  id: "animacion_moneda_plata"
+  images {
+    image: "/assets/sprites/item_moneda_plata_a.png"
+  }
+  images {
+    image: "/assets/sprites/item_moneda_plata_b.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+}
+extrude_borders: 2
