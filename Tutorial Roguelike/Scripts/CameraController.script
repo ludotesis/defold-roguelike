@@ -1,20 +1,20 @@
 function init(self)
-	-- Envía un mensaje al componente 'camera' de este objeto para activar el foco de la cámara.
+	-- Envía un mensaje al componente 'camera' de este objeto para activar el foco de la cámara
 	msg.post("#camera", "acquire_camera_focus")
-	-- Envía un mensaje al script de renderizado ('@render') para que utilice la proyección de esta cámara.
+	-- Envía un mensaje al script de renderizado ('@render') para que utilice la proyección de esta cámara
 	msg.post("@render:", "use_camera_projection")
 end
 
 function update(self, dt)
-	-- Obtiene la posición actual del objeto del juego (la cámara) y la guarda en una variable local.
+	-- Obtiene la posición actual del objeto del juego (la cámara) y la guarda en una variable local
 	local posicion_actual = go.get_position()
-	-- Busca y obtiene la posición actual del objeto llamado "/Jugador" (el Jugador).
+	-- Busca y obtiene la posición actual del objeto llamado "/Jugador" (el Jugador)
 	local posicion_jugador = go.get_position("/Jugador")
 
-	-- Crea un nuevo vector 3D usando la X e Y del jugador, pero manteniendo la Z (profundidad) de la cámara.
+	-- Crea un nuevo vector 3D usando la X e Y del jugador, pero manteniendo la Z (profundidad) de la cámara
 	local vector_objetivo = vmath.vector3(posicion_jugador.x, posicion_jugador.y, posicion_actual.z)
-	-- Realiza una interpolación lineal (Lerp) para suavizar el movimiento un 10% (0.1) hacia el objetivo.
+	-- Realiza una interpolación lineal (Lerp) para suavizar el movimiento un 10% (0.1) hacia el objetivo
 	posicion_actual = vmath.lerp(0.1, posicion_actual, vector_objetivo)
-	-- Aplica la nueva posición calculada al objeto de la cámara para moverla.
+	-- Aplica la nueva posición calculada al objeto de la cámara para moverla
 	go.set_position(posicion_actual)
 end

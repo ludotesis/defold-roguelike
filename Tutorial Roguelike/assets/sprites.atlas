@@ -31,6 +31,7 @@ animations {
     image: "/Assets/sprites/personaje_caminar_b.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
+  fps: 8
 }
 animations {
   id: "animacion_enemigo_abeja"
