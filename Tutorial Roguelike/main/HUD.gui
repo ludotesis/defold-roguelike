@@ -1,0 +1,467 @@
+fonts {
+  name: "default"
+  font: "/builtins/fonts/default.font"
+}
+fonts {
+  name: "titulos"
+  font: "/Assets/fuentes/titulos.font"
+}
+textures {
+  name: "ui"
+  texture: "/Assets/ui.atlas"
+}
+textures {
+  name: "sprites"
+  texture: "/Assets/sprites.atlas"
+}
+nodes {
+  position {
+    x: 62.0
+    y: 33.0
+  }
+  size {
+    x: 100.0
+    y: 50.0
+  }
+  type: TYPE_TEXT
+  text: "Level 1"
+  font: "default"
+  id: "LevelText"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 570.0
+    y: 33.0
+  }
+  size {
+    x: 100.0
+    y: 50.0
+  }
+  type: TYPE_TEXT
+  text: "HP"
+  font: "default"
+  id: "HpText"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 762.0
+    y: 35.0
+  }
+  size {
+    x: 250.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "HpBar"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -124.0
+  }
+  size {
+    x: 249.0
+    y: 39.0
+  }
+  color {
+    x: 0.8
+    y: 0.2
+    z: 0.2
+  }
+  type: TYPE_BOX
+  id: "Hp"
+  pivot: PIVOT_W
+  parent: "HpBar"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 283.0
+    y: 35.0
+  }
+  size {
+    x: 250.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "ExpBar"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -124.0
+  }
+  size {
+    x: 249.0
+    y: 39.0
+  }
+  color {
+    x: 0.0
+    y: 0.102
+    z: 0.502
+  }
+  type: TYPE_BOX
+  id: "Exp"
+  pivot: PIVOT_W
+  parent: "ExpBar"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 71.0
+    y: 567.0
+  }
+  size {
+    x: 100.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  texture: "ui/panel_gris_cuadrado"
+  id: "Item1"
+  inherit_alpha: true
+}
+nodes {
+  size {
+    x: 100.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  texture: "sprites/item_bolafuego"
+  id: "ImagenItem1"
+  parent: "Item1"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 71.0
+    y: 453.0
+  }
+  size {
+    x: 100.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  texture: "ui/panel_gris_cuadrado"
+  id: "Item2"
+  inherit_alpha: true
+}
+nodes {
+  size {
+    x: 80.0
+    y: 80.0
+  }
+  type: TYPE_BOX
+  texture: "sprites/item_sierra"
+  id: "ImagenItem2"
+  parent: "Item2"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 71.0
+    y: 341.0
+  }
+  size {
+    x: 100.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  texture: "ui/panel_gris_cuadrado"
+  id: "Item3"
+  inherit_alpha: true
+}
+nodes {
+  size {
+    x: 80.0
+    y: 80.0
+  }
+  type: TYPE_BOX
+  texture: "sprites/item_trampa"
+  id: "Imagen2Item3"
+  parent: "Item3"
+  inherit_alpha: true
+}
+nodes {
+  size {
+    x: 960.0
+    y: 640.0
+  }
+  type: TYPE_BOX
+  texture: "ui/panel_gris_cuadrado"
+  id: "PanelSeleccion"
+  pivot: PIVOT_SW
+  inherit_alpha: true
+  slice9 {
+    x: 32.0
+    y: 32.0
+    z: 32.0
+    w: 32.0
+  }
+}
+nodes {
+  position {
+    x: 509.0
+    y: 546.0
+  }
+  size {
+    x: 800.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.2
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Elegir Uno\n"
+  ""
+  font: "titulos"
+  id: "Titulo"
+  parent: "PanelSeleccion"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 207.0
+    y: 300.0
+  }
+  size {
+    x: 250.0
+    y: 250.0
+  }
+  type: TYPE_BOX
+  texture: "ui/panel_verde_cuadrado"
+  id: "Opcion1"
+  parent: "PanelSeleccion"
+  inherit_alpha: true
+  slice9 {
+    x: 32.0
+    y: 32.0
+    z: 32.0
+    w: 32.0
+  }
+}
+nodes {
+  position {
+    x: -1.0
+    y: 108.0
+  }
+  size {
+    x: 200.0
+    y: 30.0
+  }
+  color {
+    x: 0.0
+    y: 0.2
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Mas Ataque"
+  font: "default"
+  id: "TituloOpcion1"
+  parent: "Opcion1"
+  inherit_alpha: true
+}
+nodes {
+  size {
+    x: 140.0
+    y: 140.0
+  }
+  type: TYPE_BOX
+  texture: "sprites/item_antorcha"
+  id: "ImagenOpcion1"
+  parent: "Opcion1"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -3.0
+    y: -93.0
+  }
+  scale {
+    x: 0.7
+    y: 0.7
+  }
+  size {
+    x: 280.0
+    y: 50.0
+  }
+  color {
+    x: 0.2
+    y: 0.2
+    z: 0.2
+  }
+  type: TYPE_TEXT
+  text: "Mas Ataque\n"
+  "ATK"
+  font: "default"
+  id: "DescripcionOpcion1"
+  parent: "Opcion1"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 774.0
+    y: 305.0
+  }
+  size {
+    x: 250.0
+    y: 250.0
+  }
+  type: TYPE_BOX
+  texture: "ui/panel_verde_cuadrado"
+  id: "Opcion3"
+  parent: "PanelSeleccion"
+  inherit_alpha: true
+  slice9 {
+    x: 32.0
+    y: 32.0
+    z: 32.0
+    w: 32.0
+  }
+}
+nodes {
+  position {
+    x: -1.0
+    y: 108.0
+  }
+  size {
+    x: 200.0
+    y: 30.0
+  }
+  color {
+    x: 0.0
+    y: 0.2
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Mas Vida"
+  font: "default"
+  id: "TituloOpcion3"
+  parent: "Opcion3"
+  inherit_alpha: true
+}
+nodes {
+  size {
+    x: 140.0
+    y: 140.0
+  }
+  type: TYPE_BOX
+  texture: "sprites/item_corazon"
+  id: "ImagenOpcion3"
+  parent: "Opcion3"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -3.0
+    y: -93.0
+  }
+  scale {
+    x: 0.7
+    y: 0.7
+  }
+  size {
+    x: 280.0
+    y: 50.0
+  }
+  color {
+    x: 0.2
+    y: 0.2
+    z: 0.2
+  }
+  type: TYPE_TEXT
+  text: "Mas Vida\n"
+  "HP"
+  font: "default"
+  id: "DescripcionOpcion3"
+  parent: "Opcion3"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 492.0
+    y: 304.0
+  }
+  size {
+    x: 250.0
+    y: 250.0
+  }
+  type: TYPE_BOX
+  texture: "ui/panel_verde_cuadrado"
+  id: "Opcion2"
+  parent: "PanelSeleccion"
+  inherit_alpha: true
+  slice9 {
+    x: 32.0
+    y: 32.0
+    z: 32.0
+    w: 32.0
+  }
+}
+nodes {
+  position {
+    x: -1.0
+    y: 108.0
+  }
+  size {
+    x: 200.0
+    y: 30.0
+  }
+  color {
+    x: 0.0
+    y: 0.2
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Menos Peso"
+  font: "default"
+  id: "TituloOpcion2"
+  parent: "Opcion2"
+  inherit_alpha: true
+}
+nodes {
+  size {
+    x: 140.0
+    y: 140.0
+  }
+  type: TYPE_BOX
+  texture: "sprites/item_peso"
+  id: "ImagenOpcion2"
+  parent: "Opcion2"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -3.0
+    y: -93.0
+  }
+  scale {
+    x: 0.7
+    y: 0.7
+  }
+  size {
+    x: 280.0
+    y: 50.0
+  }
+  color {
+    x: 0.2
+    y: 0.2
+    z: 0.2
+  }
+  type: TYPE_TEXT
+  text: "Mas Velocidad\n"
+  "Speed"
+  font: "default"
+  id: "DescripcionOpcion2"
+  parent: "Opcion2"
+  inherit_alpha: true
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

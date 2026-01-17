@@ -1,0 +1,131 @@
+fonts {
+  name: "titulos"
+  font: "/Assets/fuentes/titulos.font"
+}
+fonts {
+  name: "botones"
+  font: "/Assets/fuentes/botones.font"
+}
+textures {
+  name: "ui"
+  texture: "/Assets/ui.atlas"
+}
+nodes {
+  size {
+    x: 960.0
+    y: 640.0
+  }
+  type: TYPE_BOX
+  texture: "ui/panel_gris_cuadrado"
+  id: "Fondo"
+  pivot: PIVOT_SW
+  inherit_alpha: true
+  slice9 {
+    x: 32.0
+    y: 32.0
+    z: 32.0
+    w: 32.0
+  }
+}
+nodes {
+  position {
+    x: 489.0
+    y: 305.0
+  }
+  type: TYPE_BOX
+  texture: "ui/input_boton"
+  id: "BotonJugar"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "JUGAR\t"
+  font: "botones"
+  id: "text"
+  outline {
+    x: 0.8
+    y: 0.8
+    z: 0.8
+  }
+  shadow {
+    x: 0.302
+    z: 0.102
+  }
+  parent: "BotonJugar"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 494.0
+    y: 488.0
+  }
+  size {
+    x: 800.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.2
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Roguelike Tutorial"
+  font: "titulos"
+  id: "Titulo"
+  shadow {
+    x: 0.102
+    y: 0.102
+    z: 0.102
+  }
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 489.0
+    y: 221.0
+  }
+  type: TYPE_BOX
+  texture: "ui/input_boton"
+  id: "BotonSalir"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "SALIR\n"
+  ""
+  font: "botones"
+  id: "text1"
+  outline {
+    x: 0.8
+    y: 0.8
+    z: 0.8
+  }
+  shadow {
+    x: 0.302
+    z: 0.102
+  }
+  parent: "BotonSalir"
+  inherit_alpha: true
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
