@@ -186,3 +186,14 @@ embedded_instances {
   "}\n"
   ""
 }
+embedded_instances {
+  id: "Musica"
+  data: "embedded_components {\n"
+  "  id: \"sound\"\n"
+  "  type: \"sound\"\n"
+  "  data: \"sound: \\\"/Assets/sonidos/Musica.ogg\\\"\\n"
+  "looping: 1\\n"
+  "\"\n"
+  "}\n"
+  ""
+}
