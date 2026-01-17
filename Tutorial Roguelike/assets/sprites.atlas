@@ -22,6 +22,9 @@ images {
 images {
   image: "/Assets/sprites/item_trampa.png"
 }
+images {
+  image: "/Assets/sprites/fondo.png"
+}
 animations {
   id: "animacion_jugador"
   images {
