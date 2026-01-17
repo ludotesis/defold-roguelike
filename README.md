@@ -5,3 +5,4 @@ Tutorial de desarrollo de un videojuego roguelike en español basado en [Making 
 ### Assets
 [New Platformer Pack](https://kenney.nl/assets/new-platformer-pack) by Kenney Creative Commons CC0
 [Cyber Tracks](https://rustedstudio.itch.io/cybertracks-volume-1) by Rusted Music Studio 
+[UI Pack - Sci-Fi](https://kenney.nl/assets/ui-pack-sci-fi) by Kenney Creative Commons CC0

@@ -1,0 +1,16 @@
+images {
+  image: "/Assets/ui/input_boton.png"
+}
+images {
+  image: "/Assets/ui/input_tildar.png"
+}
+images {
+  image: "/Assets/ui/panel_gris_cuadrado.png"
+}
+images {
+  image: "/Assets/ui/panel_gris_octagono.png"
+}
+images {
+  image: "/Assets/ui/panel_verde_cuadrado.png"
+}
+extrude_borders: 2
