@@ -1,2 +1,18 @@
 name: "main"
 scale_along_z: 0
+embedded_instances {
+  id: "GestorEscena"
+  data: "embedded_components {\n"
+  "  id: \"level\"\n"
+  "  type: \"collectionproxy\"\n"
+  "  data: \"collection: \\\"/main/GameScene.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"Menu\"\n"
+  "  type: \"collectionproxy\"\n"
+  "  data: \"collection: \\\"/main/MenuPrincipal.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  ""
+}

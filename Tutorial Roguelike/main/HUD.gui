@@ -16,7 +16,7 @@ textures {
 }
 nodes {
   position {
-    x: 62.0
+    x: 73.0
     y: 33.0
   }
   size {
@@ -31,7 +31,7 @@ nodes {
 }
 nodes {
   position {
-    x: 570.0
+    x: 553.0
     y: 33.0
   }
   size {
@@ -46,7 +46,7 @@ nodes {
 }
 nodes {
   position {
-    x: 762.0
+    x: 744.0
     y: 35.0
   }
   size {
@@ -80,7 +80,7 @@ nodes {
 }
 nodes {
   position {
-    x: 283.0
+    x: 269.0
     y: 35.0
   }
   size {
@@ -461,6 +461,76 @@ nodes {
   font: "default"
   id: "DescripcionOpcion2"
   parent: "Opcion2"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 500.0
+    y: 360.0
+  }
+  size {
+    x: 600.0
+    y: 400.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_BOX
+  id: "PanelGameOver"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    y: 143.0
+  }
+  size {
+    x: 400.0
+    y: 100.0
+  }
+  color {
+    x: 0.6
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "GAME OVER"
+  font: "titulos"
+  id: "TituloGameOver"
+  outline {
+    x: 0.6
+  }
+  parent: "PanelGameOver"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    y: 12.0
+  }
+  type: TYPE_BOX
+  texture: "ui/input_boton"
+  id: "BotonReplay"
+  parent: "PanelGameOver"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.2
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "REPLAY"
+  font: "default"
+  id: "TextBotonReplay"
+  parent: "BotonReplay"
   inherit_alpha: true
 }
 material: "/builtins/materials/gui.material"
