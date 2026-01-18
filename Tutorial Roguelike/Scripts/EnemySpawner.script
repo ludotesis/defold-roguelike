@@ -1,0 +1,87 @@
+function init(self)
+	-- Distancia desde el jugador a la que aparecerán los enemigos (radio del círculo)
+	self.rango_aparicion = 600
+	-- Temporizador interno para contar el tiempo entre apariciones
+	self.temporizador_aparicion = 0
+	-- Tiempo en segundos que debe pasar para que aparezca un nuevo enemigo (se reduce con el tiempo)
+	self.intervalo_aparicion = 2
+	-- Valor que controla la probabilidad/dificultad. Aumenta con el tiempo para desbloquear nuevos enemigos.
+	self.factor_dificultad = 10
+end
+
+-- Función auxiliar matemática para rotar un vector una cierta cantidad de grados
+local function rotar_vector(vector, grados)
+	-- Convierte los grados a radianes
+	local radianes = math.rad(grados)
+	local coseno = math.cos(radianes)
+	local seno = math.sin(radianes)
+
+	-- Devuelve un nuevo vector con la rotación aplicada (fórmula de rotación 2D)
+	return vmath.vector3(
+	vector.x * coseno - vector.y * seno,
+	vector.x * seno + vector.y * coseno,
+	vector.z
+)
+end
+
+-- Función principal encargada de crear (spawnear) al enemigo
+local function generar_enemigo(self)
+	-- Elige un ángulo aleatorio entre 0 y 360 grados
+	local angulo = math.random(0, 360)
+	-- Obtiene la posición actual del jugador
+	local posicion_jugador = go.get_position("/Player")
+
+	-- Crea un vector base con la distancia definida
+	local desplazamiento = vmath.vector3(self.rango_aparicion, 0, 0)
+	-- Rota ese vector con el ángulo aleatorio calculado
+	local desplazamiento_rotado = rotar_vector(desplazamiento, angulo)
+	-- Calcula la posición final sumando la posición del jugador + el vector rotado
+	local posicion_final = posicion_jugador + desplazamiento_rotado
+
+	-- Variables para decidir qué enemigo crear
+	local tipo_enemigo = ""
+	local fabrica_seleccionada = ""
+
+	-- Genera un número aleatorio basado en la dificultad actual (empieza en 10, sube hasta 40+)
+	local numero_aleatorio = math.random(0, self.factor_dificultad)
+
+	-- Lógica de selección de enemigo según el número aleatorio
+	if numero_aleatorio <= 10 then
+		tipo_enemigo = "Murcielago"   -- Debe coincidir con el script del Enemigo
+		fabrica_seleccionada = "#Bat" -- Nombre del componente en el editor de Defold
+	elseif numero_aleatorio <= 20 then
+		tipo_enemigo = "Fantasma"
+		fabrica_seleccionada = "#Ghost"
+	else
+		tipo_enemigo = "Esqueleto"
+		fabrica_seleccionada = "#Skeleton"
+	end
+
+	-- Crea el enemigo usando la fábrica seleccionada en la posición calculada
+	local id_enemigo = factory.create(fabrica_seleccionada, posicion_final, nil, {}, 1)
+
+	-- Envía el mensaje al enemigo recién creado para decirle qué tipo es (usa "definir_tipo" como en el script anterior)
+	msg.post(id_enemigo, "definir_tipo", { tipo = tipo_enemigo })
+
+	-- Aumenta la dificultad (máximo valor de referencia 40, aunque el factor sigue subiendo)
+	if self.factor_dificultad <= 40 then 
+		self.factor_dificultad = self.factor_dificultad + 0.25 
+	end
+end
+
+function update(self, dt)
+	-- Suma el tiempo transcurrido al temporizador
+	self.temporizador_aparicion = self.temporizador_aparicion + dt
+	-- Si el temporizador supera el intervalo establecido
+	if self.temporizador_aparicion >= self.intervalo_aparicion then
+		-- Llama a la función para crear un enemigo
+		generar_enemigo(self)
+		-- Reinicia el temporizador
+		self.temporizador_aparicion = 0
+
+		-- Hace el juego más difícil reduciendo el tiempo entre apariciones (límite mínimo 0.5s)
+		if self.intervalo_aparicion > 0.5 then
+			self.intervalo_aparicion = self.intervalo_aparicion - 0.02
+		end
+	end
+end
