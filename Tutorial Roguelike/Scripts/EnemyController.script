@@ -1,0 +1,105 @@
+-- Importamos el módulo que tradujimos anteriormente. 
+-- Asumimos que el archivo se sigue llamando "GameManager.lua" en la carpeta "_Scripts".
+local GestorJuego = require("Scripts.GameManager")
+
+-- Función local para gestionar el cambio de vida (daño o curación)
+local function cambiar_vida(self, valor)
+	-- Suma (o resta si es negativo) el valor a la vida actual del enemigo
+	self.vida = self.vida + valor
+	-- Marca al enemigo como envenenado (según la lógica original, recibir daño lo envenena o activa el estado)
+	self.envenenado = true 
+
+	-- Si la vida llega a 0 o menos, el enemigo muere
+	if self.vida <= 0 then
+		-- Avisa al Jugador que elimine a este enemigo de su lista (para control de oleadas, etc.)
+		msg.post("/Player", "eliminar_enemigo", { enemy = go.get_id() })
+
+		-- Crea un orbe de experiencia en la posición actual usando la fábrica
+		local id_experiencia = factory.create("/ExpSpawner#factory", go.get_position(), nil, {}, 1)
+
+		-- Determina el tamaño de la experiencia según el tipo de enemigo
+		local tipo_exp = "Pequeña" -- Por defecto (para Murciélago)
+		if self.tipo == "Fantasma" then tipo_exp = "Normal" end
+		if self.tipo == "Esqueleto" then tipo_exp = "Grande" end
+
+		-- Configura el tipo de experiencia en el orbe recién creado
+		msg.post(id_experiencia, "definir_tipo", { tipo = tipo_exp})
+
+		-- Destruye este objeto enemigo del juego
+		go.delete()
+	end
+end
+
+function update(self, dt)
+	-- Obtiene la posición actual del enemigo
+	local posicion = go.get_position()
+	-- Obtiene la posición del Jugador para perseguirlo
+	local posicion_jugador = go.get_position("/Player")
+
+	-- Calcula la dirección normalizada hacia el jugador (Vector unitario)
+	local direccion = vmath.normalize(posicion_jugador - posicion)
+	-- Mueve al enemigo en esa dirección según su velocidad y el tiempo delta
+	posicion = posicion + direccion * self.velocidad * dt
+
+	-- Voltea el sprite horizontalmente si se mueve a la izquierda (dirección X negativa)
+	sprite.set_hflip("#sprite", direccion.x < 0)
+
+	-- Aplica la nueva posición al objeto
+	go.set_position(posicion)
+
+	-- Lógica del veneno: Aumenta el contador de tiempo
+	self.contador_veneno = self.contador_veneno + dt
+
+	-- Si el contador supera el intervalo definido para el veneno
+	if self.contador_veneno >= self.intervalo_veneno then 
+		-- Aplica daño por veneno usando el valor global del GestorJuego
+		cambiar_vida(self, -GestorJuego.dano_veneno) 
+		-- Reinicia el contador
+		self.contador_veneno = 0
+	end
+end
+
+function on_message(self, id_mensaje, mensaje, remitente)
+	-- Respuesta a colisiones físicas (Triggers)
+	if id_mensaje == hash("trigger_response") then
+		-- Si choca con el área del jugador ("jugador_alcanzado")
+		if mensaje.group == hash("jugador_alcanzado") then
+			-- Le resta vida al jugador igual al ataque de este enemigo
+			msg.post(mensaje.other_id, "cambiar_vida", { value = -self.ataque })
+			-- El enemigo se destruye al impactar al jugador (estilo kamikaze según este código)
+			go.delete()
+		end
+
+		-- Mensaje para recibir daño (desde armas o trampas)
+	elseif id_mensaje == hash("cambiar_vida") then
+		local valor = mensaje.value
+		cambiar_vida(self, valor)
+
+		-- Mensaje para inicializar las estadísticas del enemigo (desde el Spawner)
+	elseif id_mensaje == hash("definir_tipo") then
+		local tipo_enemigo = mensaje.tipo -- Recibe "Murcielago", "Fantasma" o "Esqueleto"
+
+		-- Configuración inicial del veneno
+		self.intervalo_veneno = 1.6
+		self.contador_veneno = 0
+		self.envenenado = false
+		self.tipo = tipo_enemigo
+
+		-- Asigna estadísticas basándose en los datos del GestorJuego (GameManager traducido)
+		if tipo_enemigo == "Murcielago" then
+			self.velocidad = GestorJuego.murcielago.velocidad
+			self.vida = GestorJuego.murcielago.vida
+			self.ataque = GestorJuego.murcielago.ataque
+
+		elseif tipo_enemigo == "Fantasma" then
+			self.velocidad = GestorJuego.fantasma.velocidad
+			self.vida = GestorJuego.fantasma.vida
+			self.ataque = GestorJuego.fantasma.ataque
+
+		elseif tipo_enemigo == "Esqueleto" then
+			self.velocidad = GestorJuego.esqueleto.velocidad
+			self.vida = GestorJuego.esqueleto.vida
+			self.ataque = GestorJuego.esqueleto.ataque
+		end
+	end
+end
