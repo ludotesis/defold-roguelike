@@ -3,7 +3,7 @@ local Modulo = {
 	-- Indica si el sonido del juego está activado (verdadero) o no
 	sonido_activado = true,
 	-- Almacena el daño acumulado por veneno que sufre el jugador
-	daño_veneno = 0,
+	dano_veneno = 0,
 	-- Guarda el nombre del estado o escena actual (ej: "menu", "nivel_1")
 	escena_actual = "menu",
 
@@ -54,7 +54,7 @@ local Modulo = {
 -- Función para reiniciar todos los valores del juego a su estado original
 function Modulo.reiniciar_juego()
 	-- Resetea el daño por veneno a 0
-	Modulo.daño_veneno = 0
+	Modulo.dano_veneno = 0
 	-- Restaura la vida actual al valor inicial (100)
 	Modulo.vida_actual = 100
 	-- Restaura la vida máxima al valor inicial (100)

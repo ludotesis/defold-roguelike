@@ -1,0 +1,103 @@
+function init(self)
+	-- Velocidad inicial del proyectil (por defecto 300)
+	self.velocidad = 300
+	-- Daño de ataque inicial (por defecto 10)
+	self.ataque = 10
+	-- Dirección del movimiento (vector unitario hacia la derecha por defecto)
+	self.direccion = vmath.vector3(1, 0, 0)
+	-- Tipo de proyectil (cadena de texto vacía por ahora, se define al iniciar)
+	self.tipo = ""
+	-- Temporizador específico para el hacha: tiempo que tarda antes de volver
+	self.temporizador_hacha = 1.5
+	-- Bandera para saber si el hacha ya debe regresar al jugador
+	self.debe_regresar = false
+end
+
+function on_message(self, id_mensaje, mensaje, remitente)
+	-- Si el mensaje es para iniciar una FLECHA
+	if id_mensaje == hash("iniciar_flecha") then
+		self.velocidad = mensaje.velocidad   -- Asigna la velocidad recibida
+		self.ataque = mensaje.ataque         -- Asigna el ataque recibido
+		self.direccion = mensaje.direccion   -- Asigna la dirección recibida
+		self.tipo = mensaje.tipo             -- Asigna el tipo ("Flecha")
+	end
+	-- Si el mensaje es para iniciar un HACHA
+	if id_mensaje == hash("iniciar_hacha") then
+		self.velocidad = mensaje.velocidad
+		self.ataque = mensaje.ataque
+		self.direccion = mensaje.direccion
+		self.tipo = mensaje.tipo             -- Asigna el tipo ("Hacha")
+	end
+	-- Si el mensaje es para iniciar una TRAMPA (la trampa no se mueve, no necesita dirección/velocidad)
+	if id_mensaje == hash("iniciar_trampa") then
+		self.ataque = mensaje.ataque
+		self.tipo = mensaje.tipo             -- Asigna el tipo ("Trampa")
+	end
+	-- Detección de colisiones (Trigger Response es un mensaje del sistema de físicas)
+	if id_mensaje == hash("trigger_response") then
+		-- Si chocamos con un objeto del grupo "enemigo"
+		if mensaje.group == hash("enemigo") then
+			-- Envía un mensaje al enemigo para restarle vida (usando el valor de ataque)
+			msg.post(mensaje.other_id, "cambiar_vida", { value = -self.ataque })
+			-- Si es una Flecha, se destruye al impactar
+			if self.tipo == "Flecha" then 
+				go.delete() 
+			end
+			-- Si es una Trampa, avisa al jugador que la recuperó (o se activó) y se destruye
+			if self.tipo == "Trampa" then 
+				msg.post("/Jugador", "trampa_recuperada")
+				go.delete() 
+			end
+		end
+		-- Lógica del Hacha regresando: Si choca con el jugador ("jugador_alcanzado") Y ya estaba volviendo
+		if mensaje.group == hash("jugador_alcanzado") and self.tipo == "Hacha" and self.debe_regresar then
+			-- Avisa al jugador que recuperó el hacha
+			msg.post(mensaje.other_id, "hacha_recuperada")
+			-- Destruye el objeto hacha
+			go.delete()
+		end
+	end
+end
+
+function update(self, dt)
+	-- Obtiene la posición actual del proyectil
+	local posicion = go.get_position()
+	-- LÓGICA DE LA FLECHA
+	if self.tipo == "Flecha" then
+		-- Si la dirección tiene magnitud (es decir, se está moviendo)
+		if vmath.length_sqr(self.direccion) > 0 then
+			-- Calcula la nueva posición: actual + (dirección * velocidad * delta_tiempo)
+			posicion = posicion + vmath.normalize(self.direccion) * self.velocidad * dt
+		end
+		-- Actualiza la posición física del objeto
+		go.set_position(posicion)
+
+		-- LÓGICA DEL HACHA (Efecto Boomerang)
+	elseif self.tipo == "Hacha" then
+		-- Movimiento lineal del hacha (igual que la flecha)
+		if vmath.length_sqr(self.direccion) > 0 then
+			posicion = posicion + vmath.normalize(self.direccion) * self.velocidad * dt
+		end
+		go.set_position(posicion)
+
+		-- Lógica de rotación (el hacha gira sobre sí misma)
+		local rotacion_actual = go.get_rotation()
+		local velocidad_giro = math.rad(360) -- 360 grados por segundo (en radianes)
+		local delta_rotacion = vmath.quat_rotation_z(velocidad_giro * dt) -- Calcula cuánto giró en este frame
+		go.set_rotation(rotacion_actual * delta_rotacion) -- Aplica la rotación combinada
+
+		-- Temporizador para el regreso del hacha
+		self.temporizador_hacha = self.temporizador_hacha - dt
+
+		-- Si el tiempo se acabó (llega a 0 o menos)
+		if self.temporizador_hacha <= 0 then
+			self.debe_regresar = true -- Activa la bandera de regreso
+			self.temporizador_hacha = 1.5 -- Reinicia el contador (opcional, por seguridad)
+
+			-- Obtiene la posición del Jugador para saber a dónde volver
+			local posicion_jugador = go.get_position("/Jugador")
+			-- Cambia la dirección del hacha hacia el jugador
+			self.direccion = vmath.normalize(posicion_jugador - posicion)
+		end
+	end
+end
