@@ -1,3 +1,4 @@
+script: "/Scripts/MenuPrincipal.gui_script"
 fonts {
   name: "titulos"
   font: "/Assets/fuentes/titulos.font"

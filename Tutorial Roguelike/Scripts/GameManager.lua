@@ -1,7 +1,5 @@
 -- Definimos una tabla local que servirá como nuestro módulo de datos
 local Modulo = {
-	-- Indica si el sonido del juego está activado (verdadero) o no
-	sonido_activado = true,
 	-- Almacena el daño acumulado por veneno que sufre el jugador
 	dano_veneno = 0,
 	-- Guarda el nombre del estado o escena actual (ej: "menu", "nivel_1")
