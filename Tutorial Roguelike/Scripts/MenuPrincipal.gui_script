@@ -1,0 +1,72 @@
+-- Importamos el módulo global de juego (asegúrate de que el archivo se llame GameManager.lua)
+local GestorJuego = require("Scripts.GameManager")
+
+-- Función local para cambiar visualmente el icono de sonido y pausar/reproducir la música
+local function actualizar_icono_sonido(esta_activado)
+	-- Elige la imagen "SoundOn" si está activado, o "SoundOff" si no (nombres del Atlas)
+	local textura = esta_activado and "SoundOn" or "SoundOff"
+
+	-- Actualiza la variable global en el módulo para recordarlo en otras escenas
+	GestorJuego.sonido_activado = esta_activado
+
+	-- Cambia la imagen del nodo en la interfaz gráfica
+	gui.play_flipbook(gui.get_node("Image"), textura)
+	-- Pausa la música si NO está activado (not esta_activado)
+	sound.pause("/Music#sound", not esta_activado) 
+end
+
+function init(self)
+	-- Obtiene la referencia al nodo de la caja de sonido (debe llamarse "SoundBox" en el GUI)
+	self.caja_sonido = gui.get_node("SoundBox")
+	-- Obtiene la referencia al nodo de la imagen del sonido
+	self.icono_sonido = gui.get_node("Image")
+
+	-- Obtiene el botón de iniciar juego
+	self.boton_iniciar = gui.get_node("StartButton")
+	-- Obtiene el botón de salir del juego
+	self.boton_salir = gui.get_node("ExitButton")
+
+	-- Pide al sistema que este script pueda escuchar los clics del mouse/teclado
+	msg.post(".", "acquire_input_focus")
+
+	-- Inicia la música de fondo (delay 1s, volumen 0.2)
+	sound.play("/Music#sound", {delay = 1, gain = 0.2, pan = 0, speed = 1.0})
+
+	-- Llama a la función local para poner el icono correcto según lo guardado en GestorJuego
+	actualizar_icono_sonido(GestorJuego.sonido_activado)
+end
+
+function on_input(self, id_accion, accion)
+	-- Si la acción es un clic izquierdo ("LeftClick" debe estar en tu input_binding) y se presionó
+	if id_accion == hash("LeftClick") and accion.pressed then
+
+		-- Si el clic ocurrió sobre el área del botón de sonido
+		if gui.pick_node(self.caja_sonido, accion.x, accion.y) then
+			-- Invierte el valor (si era true pasa a false, y viceversa)
+			GestorJuego.sonido_activado = not GestorJuego.sonido_activado
+			-- Actualiza el icono y el audio
+			actualizar_icono_sonido(GestorJuego.sonido_activado)
+		end
+
+		-- Si el clic ocurrió sobre el botón de Iniciar
+		if gui.pick_node(self.boton_iniciar, accion.x, accion.y) then
+			-- Envía un mensaje al controlador principal para cambiar de escena a "level"
+			-- Nota: He traducido "change_scene" a "cambiar_escena". 
+			-- Asegúrate de que el script main:/SceneParent entienda este mensaje en español.
+			msg.post("main:/SceneParent", "cambiar_escena", { escena = "level" })
+		end
+
+		-- Si el clic ocurrió sobre el botón de Salir
+		if gui.pick_node(self.boton_salir, accion.x, accion.y) then
+			-- Cierra la aplicación
+			os.exit()
+		end
+	end
+end
+
+function on_message(self, id_mensaje, mensaje, remitente)
+	-- Escucha si alguien más pide actualizar el icono de sonido
+	if id_mensaje == hash("actualizar_icono_sonido") and mensaje.sonido_activado ~= nil then
+		actualizar_icono_sonido(mensaje.sonido_activado)
+	end
+end
