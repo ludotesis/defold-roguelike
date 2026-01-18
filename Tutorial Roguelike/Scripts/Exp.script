@@ -1,0 +1,61 @@
+function init(self)
+	-- Valor de experiencia que dará este orbe (se define luego según el tipo)
+	self.valor_experiencia = 0
+	-- Bandera para saber si el jugador está cerca (efecto imán)
+	self.esta_en_rango = false
+end
+
+function update(self, dt)
+	-- Si el jugador ha entrado en el rango de atracción (imán)
+	if self.esta_en_rango then
+		-- Obtiene la posición actual del orbe
+		local posicion = go.get_position()
+		-- Obtiene la posición del jugador
+		local posicion_jugador = go.get_position("/Jugador")
+
+		-- Calcula la dirección hacia el jugador
+		local direccion = vmath.normalize(posicion_jugador - posicion)
+		-- Mueve el orbe hacia el jugador a una velocidad de 220
+		posicion = posicion + direccion * 220 * dt
+
+		-- Aplica la nueva posición
+		go.set_position(posicion)
+	end
+end
+
+function on_message(self, id_mensaje, mensaje, remitente)
+	-- Mensaje recibido desde el Enemigo al morir (Enemy.lua)
+	if id_mensaje == hash("definir_tipo") then
+
+		-- Si el tipo es "Pequeña" (Bat / Murciélago)
+		if mensaje.tipo == "Pequeña" then
+			self.valor_experiencia = 10
+			-- Activa el sprite pequeño y desactiva el grande (nombres de componentes en el editor)
+			msg.post("#Small", "enable")
+			msg.post("#Large", "disable")
+		else
+			-- Si no es pequeña, revisa si es Normal o Grande
+			if mensaje.tipo == "Normal" then self.valor_experiencia = 25 end
+			if mensaje.tipo == "Grande" then self.valor_experiencia = 50 end
+
+			-- Activa el sprite grande y desactiva el pequeño
+			msg.post("#Large", "enable")
+			msg.post("#Small", "disable")
+		end
+
+		-- Detección de colisiones físicas (Triggers)
+	elseif id_mensaje == hash("trigger_response") and mensaje.enter then
+
+		-- Si toca el cuerpo físico del jugador ("jugador_alcanzado") -> Se recolecta
+		if mensaje.group == hash("jugador_alcanzado") then
+			-- Envía la experiencia al jugador (asegúrate de que el script del jugador reciba "ganar_experiencia")
+			msg.post(mensaje.other_id, "ganar_experiencia", { value = self.valor_experiencia })
+			-- Destruye el orbe
+			go.delete()
+
+			-- Si toca el área de detección del jugador ("jugador") -> Se activa el imán
+		elseif mensaje.group == hash("jugador") then
+			self.esta_en_rango = true
+		end
+	end
+end
