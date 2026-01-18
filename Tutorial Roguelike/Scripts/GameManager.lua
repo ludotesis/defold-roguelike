@@ -49,6 +49,7 @@ local Modulo = {
 		vida = 200,      -- Vida del esqueleto
 		ataque = 25      -- Daño del esqueleto
 	},
+	esta_recargando = false
 }
 
 -- Función para reiniciar todos los valores del juego a su estado original

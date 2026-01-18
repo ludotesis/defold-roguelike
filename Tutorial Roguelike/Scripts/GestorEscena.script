@@ -38,7 +38,7 @@ function on_message(self, id_mensaje, mensaje, remitente)
 	-- Mensaje del sistema Defold: El proxy ya terminó de cargar en memoria
 	if id_mensaje == hash("proxy_loaded") then
 		-- Activa la escena para que se vea y funcione
-		msg.post(sender, "enable")
+		msg.post(remitente, "enable")
 
 		-- Mensaje del sistema Defold: El proxy terminó de descargarse
 	elseif id_mensaje == hash("proxy_unloaded") then
