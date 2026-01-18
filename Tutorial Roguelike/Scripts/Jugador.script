@@ -1,0 +1,284 @@
+-- Importamos el módulo global 'GestorJuego' (GameManager)
+local GestorJuego = require("Scripts.GameManager")
+
+function init(self)
+	-- Velocidad de movimiento del jugador
+	self.velocidad = 330
+
+	-- Configuración de la FLECHA
+	self.flecha = {
+		velocidad = 330,
+		ataque = 20,
+		contador = 0,      -- Tiempo acumulado
+		intervalo = 1.1,   -- Dispara cada 1.1 segundos
+		cantidad = 1,      -- Cantidad de flechas simultáneas
+	}
+
+	-- Configuración del HACHA
+	self.hacha = {
+		velocidad = 350,
+		ataque = 35,
+		contador = 0,
+		intervalo = 2.5,
+		cantidad = 0,      -- Empieza sin hachas
+	}
+
+	-- Configuración de la TRAMPA
+	self.trampa = {
+		ataque = 55,
+		contador = 0,
+		intervalo = 1.25,
+		cantidad = 0,      -- Empieza sin trampas
+	}
+
+	-- Vector de dirección actual (input)
+	self.direccion = vmath.vector3()
+	-- Tabla para almacenar la lista de enemigos cercanos (dentro del área de detección)
+	self.enemigos_en_rango = {}
+
+	-- Pide foco para escuchar teclado/mouse
+	msg.post(".", "acquire_input_focus")
+end
+
+-- Función local para encontrar al enemigo más cercano de la lista
+local function obtener_enemigo_mas_cercano(self)
+	local pos_jugador = go.get_position()
+	local mas_cercano = nil
+	local dist_minima_sq = math.huge -- Empieza con un número infinito
+
+	for id, _ in pairs(self.enemigos_en_rango) do
+		-- Verifica si el enemigo aún existe (no ha muerto)
+		if go.exists(id) then
+			local pos_enemigo = go.get_position(id)
+			-- Calcula distancia al cuadrado (más rápido que la distancia real)
+			local dist_sq = vmath.length_sqr(pos_enemigo - pos_jugador)
+
+			if dist_sq < dist_minima_sq then
+				dist_minima_sq = dist_sq
+				mas_cercano = id
+			end
+		end
+	end
+	return mas_cercano
+end
+
+-- Lógica de disparo de Flechas
+local function disparar_flechas(self)
+	-- Bucle para disparar múltiples flechas si se tienen mejoras
+	for i = 0, self.flecha.cantidad - 1 do
+		-- Pequeño retraso entre flechas para que no salgan todas pegadas
+		timer.delay(i * 0.2, false, function()
+			local objetivo = obtener_enemigo_mas_cercano(self)
+			-- Si no hay enemigos o el enemigo dejó de existir, no dispara
+			if not objetivo or not go.exists(objetivo) then return end
+
+			local pos_jugador = go.get_position()
+			local pos_enemigo = go.get_position(objetivo)
+
+			-- Calcula dirección hacia el enemigo
+			local direccion = pos_enemigo - pos_jugador
+			if vmath.length_sqr(direccion) == 0 then return end
+			direccion = vmath.normalize(direccion)
+
+			-- Calcula el ángulo de rotación para que la flecha mire al enemigo
+			local angulo = math.atan2(direccion.y, direccion.x)
+			local rotacion = vmath.quat_rotation_z(angulo)
+
+			-- Crea la flecha usando la fábrica (Componente #Arrow en el editor)
+			local id_flecha = factory.create("#Arrow", pos_jugador + direccion * 30, rotacion)
+
+			-- Inicializa la flecha con los datos en español
+			msg.post(id_flecha, "iniciar_flecha", {
+				velocidad = self.flecha.velocidad,
+				ataque = self.flecha.ataque,
+				direccion = direccion,
+				tipo = "Flecha" -- Coincide con el script de proyectiles
+			})
+		end)
+	end
+end
+
+-- Lógica de lanzamiento de Hachas
+local function lanzar_hachas(self)
+	for i = 0, self.hacha.cantidad - 1 do
+		timer.delay(i * 0.3, false, function()
+			local objetivo = obtener_enemigo_mas_cercano(self)
+			if not objetivo or not go.exists(objetivo) then return end
+
+			local pos_jugador = go.get_position()
+			local pos_enemigo = go.get_position(objetivo)
+			local direccion = pos_enemigo - pos_jugador
+			if vmath.length_sqr(direccion) == 0 then return end
+			direccion = vmath.normalize(direccion)
+
+			-- Crea el hacha (#Axe en el editor)
+			local id_hacha = factory.create("#Axe", pos_jugador + direccion * 30)
+
+			msg.post(id_hacha, "iniciar_hacha", {
+				velocidad = self.hacha.velocidad,
+				ataque = self.hacha.ataque,
+				direccion = direccion,
+				tipo = "Hacha" -- Coincide con script de proyectiles
+			})
+			-- Resta un hacha del inventario (porque tarda en volver)
+			self.hacha.cantidad = self.hacha.cantidad - 1
+		end)
+	end
+end
+
+-- Lógica de trampa
+local function lanzar_trampa(self)
+	if self.trampa.cantidad >= 1 then
+		local pos_jugador = go.get_position()
+
+		-- Dirección aleatoria en 360 grados
+		local angulo = math.random() * 2 * math.pi
+		local direccion = vmath.vector3(math.cos(angulo), math.sin(angulo), 0)
+
+		-- Crea la trampa (#Trap en el editor)
+		local id_trampa = factory.create("#Trap", pos_jugador + direccion * 300)
+
+		msg.post(id_trampa, "iniciar_trampa", {
+			ataque = self.trampa.ataque,
+			tipo = "Trampa"
+		})
+		-- Resta la trampa lanzada (vuelve al activarse)
+		self.trampa.cantidad = self.trampa.cantidad - 1
+	end
+end
+
+function update(self, dt)
+	local pos = go.get_position()
+	-- Movimiento del jugador
+	if vmath.length_sqr(self.direccion) > 0 then
+		pos = pos + vmath.normalize(self.direccion) * self.velocidad * dt
+	end
+	go.set_position(pos)
+	-- Resetea dirección para el siguiente frame (evita deslizamiento infinito)
+	self.direccion = vmath.vector3()
+
+	-- Temporizador Flecha
+	self.flecha.contador = self.flecha.contador + dt
+	if self.flecha.contador >= self.flecha.intervalo then
+		self.flecha.contador = 0
+		disparar_flechas(self)
+	end
+
+	-- Temporizador Hacha
+	self.hacha.contador = self.hacha.contador + dt
+	if self.hacha.contador >= self.hacha.intervalo then
+		self.hacha.contador = 0
+		lanzar_hachas(self)
+	end
+
+	-- Temporizador Trampa
+	self.trampa.contador = self.trampa.contador + dt
+	if self.trampa.contador >= self.trampa.intervalo then
+		self.trampa.contador = 0
+		lanzar_trampa(self)
+	end
+end
+
+function on_input(self, id_accion, accion)
+	-- Los nombres "Left", "Right", etc. vienen del archivo input_binding de Defold.
+	-- No los traduzcas a menos que cambies ese archivo.
+	if id_accion == hash("Left") then
+		self.direccion.x = -1
+	elseif id_accion == hash("Right") then
+		self.direccion.x = 1
+	elseif id_accion == hash("Up") then
+		self.direccion.y = 1
+	elseif id_accion == hash("Down") then
+		self.direccion.y = -1
+	end
+end
+
+-- Función para manejar daño o curación
+local function cambiar_vida(self, valor)
+	-- Usamos los "getters" del GestorJuego traducido
+	local vida, vida_max = GestorJuego.obtener_vida()
+
+	-- Si es daño (valor negativo), aplica reducción por armadura
+	if valor < 0 then 
+		valor = math.min(0, valor + GestorJuego.obtener_armadura()) 
+	end
+
+	vida = vida + valor
+	-- Guarda la nueva vida en el gestor
+	GestorJuego.establecer_vida(vida, vida_max)
+
+	-- Actualiza la interfaz gráfica (GUI)
+	msg.post("/GUI", "actualizar_ui")
+end
+
+-- Función para manejar ganancia de experiencia y subida de nivel
+local function ganar_experiencia_local(self, valor)
+	local exp_actual, exp_necesaria = GestorJuego.obtener_experiencia()
+	local nivel = GestorJuego.obtener_nivel()
+
+	exp_actual = exp_actual + valor
+
+	-- Bucle por si se gana mucha exp y sube varios niveles de golpe
+	while exp_actual >= exp_necesaria do
+		exp_actual = exp_actual - exp_necesaria
+		nivel = nivel + 1
+		-- Aumenta la dificultad para el siguiente nivel (x1.35)
+		exp_necesaria = math.floor(exp_necesaria * 1.35)
+
+		-- Avisa a la GUI que muestre la pantalla de habilidades
+		msg.post("/GUI", "habilidades")
+	end
+
+	-- Guarda los nuevos valores
+	GestorJuego.establecer_nivel(nivel)
+	GestorJuego.establecer_experiencia(exp_actual, exp_necesaria)
+
+	-- Actualiza la barra de experiencia en pantalla
+	msg.post("/GUI", "actualizar_ui")
+end
+
+function on_message(self, id_mensaje, mensaje, remitente)
+	-- Mensaje recibido para cambiar vida (desde enemigos o proyectiles enemigos)
+	if id_mensaje == hash("cambiar_vida") then
+		local valor = mensaje.value or 0
+		cambiar_vida(self, valor)
+
+		-- Mensaje recibido al recoger orbes
+	elseif id_mensaje == hash("ganar_experiencia") then
+		ganar_experiencia_local(self, mensaje.value)
+
+		-- Mensajes de retorno de armas (coinciden con el script Proyectiles)
+	elseif id_mensaje == hash("hacha_recuperada") then
+		self.hacha.cantidad = self.hacha.cantidad + 1
+
+	elseif id_mensaje == hash("trampa_recuperada") then
+		self.trampa.cantidad = self.trampa.cantidad + 1
+
+		-- Mensajes de mejora (Power-ups) - Probablemente desde la GUI de habilidades
+	elseif id_mensaje == hash("mas_flechas") then
+		self.flecha.cantidad = self.flecha.cantidad + 1
+
+	elseif id_mensaje == hash("mas_hachas") then
+		self.hacha.cantidad = self.hacha.cantidad + 1
+
+	elseif id_mensaje == hash("mas_trampas") then
+		self.trampa.cantidad = self.trampa.cantidad + 1
+
+		-- Mensaje desde el Enemigo cuando muere
+	elseif id_mensaje == hash("eliminar_enemigo") then
+		local enemigo = mensaje.enemy
+		-- Elimina al enemigo de la lista de objetivos válidos
+		if self.enemigos_en_rango[enemigo] then
+			self.enemigos_en_rango[enemigo] = nil
+		end
+
+		-- Detección de colisiones (Radio de detección de enemigos)
+	elseif id_mensaje == hash("trigger_response") then
+		-- Asegúrate de que el grupo de colisión del enemigo sea "enemigo" en el editor
+		if mensaje.enter and mensaje.group == hash("enemigo") then
+			self.enemigos_en_rango[mensaje.other_id] = true
+		elseif mensaje.enter == false and mensaje.group == hash("enemigo") then
+			self.enemigos_en_rango[mensaje.other_id] = nil
+		end
+	end
+end
