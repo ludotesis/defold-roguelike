@@ -4,12 +4,12 @@ local GestorJuego = require("Scripts.GameManager")
 -- Función para preparar y mostrar la pantalla de selección de habilidades (Level Up)
 local function establecer_ui_seleccion(self)
 	-- Pausa el juego enviando un mensaje al controlador principal (factor 0 = tiempo detenido)
-	msg.post("main:/SceneParent", "establecer_paso_tiempo", { factor = 0, mode = 1 })
+	msg.post("main:/GestorEscena", "set_time_step", { factor = 0, mode = 1 })
 
 	-- Marca que estamos en modo selección
 	self.es_tiempo_seleccion = true
 	-- Activa el fondo oscuro de la selección
-	gui.set_enabled(self.fondo_seleccion, true)
+	gui.set_enabled(self.PanelSeleccion, true)
 
 	-- Crea una lista temporal con las claves (nombres) de todas las habilidades disponibles
 	local claves_habilidades = {}
@@ -52,7 +52,7 @@ local function actualizar_barras_ui(self)
 		gui.set_enabled(self.pantalla_derrota, true)
 		self.ha_perdido = true
 		-- Pausa el juego
-		msg.post("main:/SceneParent", "establecer_paso_tiempo", { factor = 0, mode = 1 })
+		msg.post("main:/GestorEscena", "set_time_step", { factor = 0, mode = 1 })
 	end
 
 	-- Calcula el porcentaje de vida para escalar la barra roja
@@ -71,47 +71,43 @@ end
 
 function init(self)
 	-- Al iniciar, asegura que el juego corre a velocidad normal
-	msg.post("main:/SceneParent", "establecer_paso_tiempo", { factor = 1, mode = 1 })
-
-	-- Reproduce música si el sonido está activado en el Gestor
-	if GestorJuego.sonido_activado then
-		sound.play("/Music#sound", {delay = 1, gain = 0.1, pan = 0, speed = 1.0})
-	end
-
+	msg.post("main:/GestorEscena", "set_time_step", { factor = 1, mode = 1 })
+	-- Reproduce música
+	sound.play("/Musica#sound", {delay = 1, gain = 0.1, pan = 0, speed = 1.0})
 	-- Referencias a nodos de la GUI (Nombres en el Editor de Defold se mantienen igual usualmente)
-	self.pantalla_derrota = gui.get_node("LoseScreen")
+	self.pantalla_derrota = gui.get_node("PanelGameOver")
 	self.ha_perdido = false
-	self.boton_replay = gui.get_node("ReplayButton")
+	self.boton_replay = gui.get_node("BotonReplay")
 	gui.set_enabled(self.pantalla_derrota, false)
 
-	self.fondo_seleccion = gui.get_node("SelectionBG")
+	self.fondo_seleccion = gui.get_node("PanelSeleccion")
 	self.es_tiempo_seleccion = false
 
 	-- Iconos de habilidades adquiridas (UI inferior o superior)
-	self.skill_2 = gui.get_node("Skill2")
-	self.skill_3 = gui.get_node("Skill3")
+	self.skill_2 = gui.get_node("ImagenItem2")
+	self.skill_3 = gui.get_node("Imagen2Item3")
 
 	self.texto_nivel = gui.get_node("LevelText")
 
 	-- Tabla que mapea los nodos de las 3 opciones de mejora
 	self.opciones = {
 		["opcion_1"] = {
-			node = gui.get_node("Option1"),
-			nombre = gui.get_node("Skill1Name"),
-			imagen = gui.get_node("Skill1Image"),
-			descripcion = gui.get_node("Skill1Description")
+			node = gui.get_node("Opcion1"),
+			nombre = gui.get_node("TituloOpcion1"),
+			imagen = gui.get_node("ImagenOpcion1"),
+			descripcion = gui.get_node("DescripcionOpcion1")
 		},
 		["opcion_2"] = {
-			node = gui.get_node("Option2"),
-			nombre = gui.get_node("Skill2Name"),
-			imagen = gui.get_node("Skill2Image"),
-			descripcion = gui.get_node("Skill2Description")
+			node = gui.get_node("Opcion2"),
+			nombre = gui.get_node("TituloOpcion2"),
+			imagen = gui.get_node("ImagenOpcion2"),
+			descripcion = gui.get_node("DescripcionOpcion2")
 		},
 		["opcion_3"] = {
-			node = gui.get_node("Option3"),
-			nombre = gui.get_node("Skill3Name"),
-			imagen = gui.get_node("Skill3Image"),
-			descripcion = gui.get_node("Skill3Description")
+			node = gui.get_node("Opcion3"),
+			nombre = gui.get_node("TituloOpcion3"),
+			imagen = gui.get_node("ImagenOpcion3"),
+			descripcion = gui.get_node("DescripcionOpcion3")
 		},
 	}
 
@@ -151,7 +147,7 @@ function init(self)
 			descripcion = "Aumenta la cantidad de flechas en 1",
 		},
 		["Mas Hachas"] = {
-			imagen = "Axe",
+			imagen = "Sierra",
 			descripcion = "Aumenta la cantidad de hachas en 1",
 		},
 		["Mas Trampas"] = {
@@ -176,7 +172,7 @@ end
 -- Función lógica para aplicar la mejora elegida
 local function aplicar_seleccion(habilidad_seleccionada, self)
 	-- URL del script del jugador para enviarle mensajes
-	local url_jugador = msg.url("Player")
+	local url_jugador = msg.url("Jugador")
 
 	if habilidad_seleccionada == "Aumento Vida" then
 		local vida, vida_max = GestorJuego.obtener_vida()
@@ -253,7 +249,7 @@ local function aplicar_seleccion(habilidad_seleccionada, self)
 	-- Oculta la pantalla de selección
 	gui.set_enabled(self.fondo_seleccion, false)
 	-- Reanuda el tiempo del juego
-	msg.post("main:/SceneParent", "establecer_paso_tiempo", { factor = 1, mode = 1 })
+	msg.post("main:/GestorEscena", "set_time_step", { factor = 1, mode = 1 })
 end
 
 function on_input(self, action_id, action)
@@ -261,12 +257,12 @@ function on_input(self, action_id, action)
 	if not self.es_tiempo_seleccion and not self.ha_perdido then return end
 
 	-- Detecta clic izquierdo (o toque en pantalla)
-	if action_id == hash("LeftClick") and action.pressed then
+	if action_id == hash("touch") and action.pressed then
 
 		-- Si hace clic en el botón Replay (Reiniciar)
 		if gui.pick_node(self.boton_replay, action.x, action.y) and self.ha_perdido then
 			GestorJuego.reiniciar_juego()
-			msg.post("main:/SceneParent", "cambiar_escena", { scene = "level" }) -- "level" debe ser el nombre de tu proxy
+			msg.post("main:/GestorEscena", "cambiar_escena", { scene = "level" }) -- "level" debe ser el nombre de tu proxy
 
 			-- Si hace clic en la Opción 1
 		elseif gui.pick_node(self.opciones["opcion_1"].node, action.x, action.y) then
