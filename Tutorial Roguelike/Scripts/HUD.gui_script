@@ -1,0 +1,295 @@
+-- Importamos el módulo GestorJuego (GameManager traducido anteriormente)
+local GestorJuego = require("Scripts.GameManager")
+
+-- Función para preparar y mostrar la pantalla de selección de habilidades (Level Up)
+local function establecer_ui_seleccion(self)
+	-- Pausa el juego enviando un mensaje al controlador principal (factor 0 = tiempo detenido)
+	msg.post("main:/SceneParent", "establecer_paso_tiempo", { factor = 0, mode = 1 })
+
+	-- Marca que estamos en modo selección
+	self.es_tiempo_seleccion = true
+	-- Activa el fondo oscuro de la selección
+	gui.set_enabled(self.fondo_seleccion, true)
+
+	-- Crea una lista temporal con las claves (nombres) de todas las habilidades disponibles
+	local claves_habilidades = {}
+	for clave in pairs(self.habilidades) do
+		table.insert(claves_habilidades, clave)
+	end
+
+	-- Algoritmo de barajado (Fisher-Yates) para mezclar las habilidades aleatoriamente
+	for i = #claves_habilidades, 2, -1 do
+		local j = math.random(1, i)
+		claves_habilidades[i], claves_habilidades[j] = claves_habilidades[j], claves_habilidades[i]
+	end
+
+	-- Asigna 3 habilidades aleatorias a los 3 botones de opción
+	for nombre_opcion, nodos_opcion in pairs(self.opciones) do
+		-- Saca una habilidad de la lista mezclada
+		local nombre_habilidad = table.remove(claves_habilidades, 1)
+		local datos_habilidad = self.habilidades[nombre_habilidad]
+
+		-- Establece el texto del título con el nombre de la habilidad (en español)
+		gui.set_text(nodos_opcion.nombre, nombre_habilidad)
+		-- Establece la descripción
+		gui.set_text(nodos_opcion.descripcion, datos_habilidad.descripcion)
+
+		-- Cambia la imagen del icono (Flipbook animation)
+		gui.play_flipbook(nodos_opcion.imagen, datos_habilidad.imagen)
+	end
+end
+
+
+-- Función para actualizar las barras de vida, experiencia y textos
+local function actualizar_barras_ui(self)
+	-- Obtiene datos del GestorJuego
+	local vida, vida_max = GestorJuego.obtener_vida()
+	local exp, exp_necesaria = GestorJuego.obtener_experiencia()
+
+	-- Comprobación de "Game Over"
+	if vida <= 0 then
+		-- Muestra la pantalla de derrota
+		gui.set_enabled(self.pantalla_derrota, true)
+		self.ha_perdido = true
+		-- Pausa el juego
+		msg.post("main:/SceneParent", "establecer_paso_tiempo", { factor = 0, mode = 1 })
+	end
+
+	-- Calcula el porcentaje de vida para escalar la barra roja
+	local porcentaje_vida = math.min(vida / vida_max, 1)
+	local nuevo_tamano_vida = vmath.vector3(porcentaje_vida * self.ancho_max_vida, gui.get_size(self.barra_vida).y, 0)
+	gui.set_size(self.barra_vida, nuevo_tamano_vida)
+
+	-- Calcula el porcentaje de experiencia para escalar la barra amarilla/azul
+	local porcentaje_exp = math.min(exp / exp_necesaria, 1)
+	local nuevo_tamano_exp = vmath.vector3(porcentaje_exp * self.ancho_max_exp, gui.get_size(self.barra_exp).y, 0)
+	gui.set_size(self.barra_exp, nuevo_tamano_exp)
+
+	-- Actualiza el texto del nivel
+	gui.set_text(self.texto_nivel, "Nivel: " .. GestorJuego.nivel_jugador)
+end
+
+function init(self)
+	-- Al iniciar, asegura que el juego corre a velocidad normal
+	msg.post("main:/SceneParent", "establecer_paso_tiempo", { factor = 1, mode = 1 })
+
+	-- Reproduce música si el sonido está activado en el Gestor
+	if GestorJuego.sonido_activado then
+		sound.play("/Music#sound", {delay = 1, gain = 0.1, pan = 0, speed = 1.0})
+	end
+
+	-- Referencias a nodos de la GUI (Nombres en el Editor de Defold se mantienen igual usualmente)
+	self.pantalla_derrota = gui.get_node("LoseScreen")
+	self.ha_perdido = false
+	self.boton_replay = gui.get_node("ReplayButton")
+	gui.set_enabled(self.pantalla_derrota, false)
+
+	self.fondo_seleccion = gui.get_node("SelectionBG")
+	self.es_tiempo_seleccion = false
+
+	-- Iconos de habilidades adquiridas (UI inferior o superior)
+	self.skill_2 = gui.get_node("Skill2")
+	self.skill_3 = gui.get_node("Skill3")
+
+	self.texto_nivel = gui.get_node("LevelText")
+
+	-- Tabla que mapea los nodos de las 3 opciones de mejora
+	self.opciones = {
+		["opcion_1"] = {
+			node = gui.get_node("Option1"),
+			nombre = gui.get_node("Skill1Name"),
+			imagen = gui.get_node("Skill1Image"),
+			descripcion = gui.get_node("Skill1Description")
+		},
+		["opcion_2"] = {
+			node = gui.get_node("Option2"),
+			nombre = gui.get_node("Skill2Name"),
+			imagen = gui.get_node("Skill2Image"),
+			descripcion = gui.get_node("Skill2Description")
+		},
+		["opcion_3"] = {
+			node = gui.get_node("Option3"),
+			nombre = gui.get_node("Skill3Name"),
+			imagen = gui.get_node("Skill3Image"),
+			descripcion = gui.get_node("Skill3Description")
+		},
+	}
+
+	-- CONFIGURACIÓN DE HABILIDADES (Traducido al español)
+	-- Las claves (ej: "Aumento Vida") son lo que aparecerá escrito en el botón.
+	self.habilidades = {
+		["Aumento Vida"] = {
+			imagen = "MaxHpIncrease", -- Nombre de la animación en el atlas
+			descripcion = "Aumenta la vida maxima considerablemente",
+		},
+		["Aumento Vida Peq"] = {
+			imagen = "MaxHpIncreaseSmall",
+			descripcion = "Aumenta un poco la vida maxima",
+		},
+		["Velocidad"] = {
+			imagen = "SpeedIncrease",
+			descripcion = "Aumenta la velocidad de movimiento",
+		},
+		["Armadura"] = {
+			imagen = "Armor",
+			descripcion = "Reduce el daño recibido",
+		},
+		["Armadura Peq"] = {
+			imagen = "SmallArmor",
+			descripcion = "Reduce un poco el daño recibido",
+		},
+		["Curacion"] = {
+			imagen = "HpRestore",
+			descripcion = "Restaura parte de la vida perdida",
+		},
+		["Daño Veneno"] = {
+			imagen = "PoisonDamage",
+			descripcion = "Los enemigos golpeados pierden vida gradualmente",
+		},
+		["Mas Flechas"] = {
+			imagen = "Arrow",
+			descripcion = "Aumenta la cantidad de flechas en 1",
+		},
+		["Mas Hachas"] = {
+			imagen = "Axe",
+			descripcion = "Aumenta la cantidad de hachas en 1",
+		},
+		["Mas Trampas"] = {
+			imagen = "BearTrap",
+			descripcion = "Aumenta la cantidad de trampas en 1",
+		},
+	}
+
+	-- Referencias a las barras de vida y experiencia
+	self.barra_vida = gui.get_node("Hp")
+	self.ancho_max_vida = gui.get_size(self.barra_vida).x
+	self.barra_exp = gui.get_node("Exp")
+	self.ancho_max_exp = gui.get_size(self.barra_exp).x
+
+	-- Adquiere el foco para recibir clics/toques
+	msg.post(".", "acquire_input_focus")
+
+	actualizar_barras_ui(self)
+	gui.set_enabled(self.fondo_seleccion, false)
+end
+
+-- Función lógica para aplicar la mejora elegida
+local function aplicar_seleccion(habilidad_seleccionada, self)
+	-- URL del script del jugador para enviarle mensajes
+	local url_jugador = msg.url("Player")
+
+	if habilidad_seleccionada == "Aumento Vida" then
+		local vida, vida_max = GestorJuego.obtener_vida()
+		local adicion = vida_max * 0.25
+		vida = vida + adicion
+		vida_max = vida_max + adicion
+		GestorJuego.establecer_vida(vida, vida_max)
+
+	elseif habilidad_seleccionada == "Aumento Vida Peq" then
+		local vida, vida_max = GestorJuego.obtener_vida()
+		local adicion = vida_max * 0.15
+		vida = vida + adicion
+		vida_max = vida_max + adicion
+		GestorJuego.establecer_vida(vida, vida_max)
+
+	elseif habilidad_seleccionada == "Velocidad" then
+		local velocidad = GestorJuego.obtener_velocidad()
+		velocidad = velocidad * 1.2
+		GestorJuego.establecer_velocidad(velocidad)
+
+	elseif habilidad_seleccionada == "Armadura" then
+		local armadura = GestorJuego.obtener_armadura()
+		armadura = armadura + 2
+		GestorJuego.establecer_armadura(armadura)
+
+	elseif habilidad_seleccionada == "Armadura Peq" then
+		local armadura = GestorJuego.obtener_armadura()
+		armadura = armadura + 1
+		GestorJuego.establecer_armadura(armadura)
+
+	elseif habilidad_seleccionada == "Curacion" then
+		local vida, vida_max = GestorJuego.obtener_vida()
+		vida = vida + vida_max * 0.3
+		GestorJuego.establecer_vida(vida, vida_max)
+
+	elseif habilidad_seleccionada == "Daño Veneno" then
+		GestorJuego.dano_veneno = GestorJuego.dano_veneno + 4
+
+	elseif habilidad_seleccionada == "Mas Flechas" then
+		msg.post(url_jugador, "mas_flechas") -- Mensaje al jugador (debes actualizar el script Player)
+
+	elseif habilidad_seleccionada == "Mas Hachas" then
+		msg.post(url_jugador, "mas_hachas")
+		if not GestorJuego.tiene_hacha then
+			GestorJuego.tiene_hacha = true
+			GestorJuego.cantidad_habilidad_ataque = GestorJuego.cantidad_habilidad_ataque + 1
+			-- Activa el icono en la interfaz
+			if GestorJuego.cantidad_habilidad_ataque == 2 then
+				gui.play_flipbook(self.skill_2, "Axe")
+				gui.set_enabled(self.skill_2, true)
+			elseif GestorJuego.cantidad_habilidad_ataque == 3 then
+				gui.play_flipbook(self.skill_3, "Axe")
+				gui.set_enabled(self.skill_3, true)
+			end
+		end
+
+	elseif habilidad_seleccionada == "Mas Trampas" then
+		msg.post(url_jugador, "mas_trampas")
+		if not GestorJuego.tiene_trampa then
+			GestorJuego.tiene_trampa = true
+			GestorJuego.cantidad_habilidad_ataque = GestorJuego.cantidad_habilidad_ataque + 1
+			if GestorJuego.cantidad_habilidad_ataque == 2 then
+				gui.play_flipbook(self.skill_2, "BearTrap")
+				gui.set_enabled(self.skill_2, true)
+			elseif GestorJuego.cantidad_habilidad_ataque == 3 then
+				gui.play_flipbook(self.skill_3, "BearTrap")
+				gui.set_enabled(self.skill_3, true)
+			end
+		end
+	end
+
+	-- Actualiza las barras visuales tras la mejora
+	actualizar_barras_ui(self)
+	-- Oculta la pantalla de selección
+	gui.set_enabled(self.fondo_seleccion, false)
+	-- Reanuda el tiempo del juego
+	msg.post("main:/SceneParent", "establecer_paso_tiempo", { factor = 1, mode = 1 })
+end
+
+function on_input(self, action_id, action)
+	-- Si no es momento de seleccionar ni hemos perdido, ignora el input
+	if not self.es_tiempo_seleccion and not self.ha_perdido then return end
+
+	-- Detecta clic izquierdo (o toque en pantalla)
+	if action_id == hash("LeftClick") and action.pressed then
+
+		-- Si hace clic en el botón Replay (Reiniciar)
+		if gui.pick_node(self.boton_replay, action.x, action.y) and self.ha_perdido then
+			GestorJuego.reiniciar_juego()
+			msg.post("main:/SceneParent", "cambiar_escena", { scene = "level" }) -- "level" debe ser el nombre de tu proxy
+
+			-- Si hace clic en la Opción 1
+		elseif gui.pick_node(self.opciones["opcion_1"].node, action.x, action.y) then
+			aplicar_seleccion(gui.get_text(self.opciones["opcion_1"].nombre), self)
+
+			-- Si hace clic en la Opción 2
+		elseif gui.pick_node(self.opciones["opcion_2"].node, action.x, action.y) then
+			aplicar_seleccion(gui.get_text(self.opciones["opcion_2"].nombre), self)
+
+			-- Si hace clic en la Opción 3
+		elseif gui.pick_node(self.opciones["opcion_3"].node, action.x, action.y) then
+			aplicar_seleccion(gui.get_text(self.opciones["opcion_3"].nombre), self)
+		end
+	end
+end
+
+function on_message(self, id_mensaje, mensaje, remitente)
+	-- Mensaje para actualizar UI (ej: al recibir daño o exp)
+	if id_mensaje == hash("actualizar_ui") then
+		actualizar_barras_ui(self)
+	end
+	-- Mensaje que indica que el jugador subió de nivel y necesita elegir habilidad
+	if id_mensaje == hash("habilidades") then
+		establecer_ui_seleccion(self)
+	end
+end
