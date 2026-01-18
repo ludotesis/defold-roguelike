@@ -1,0 +1,57 @@
+-- Importamos el Gestor de Juego
+local GestorJuego = require("Scripts.GameManager")
+
+function init(self)
+	-- Adquiere el foco para inputs (aunque normalmente el controller no los usa directamente, es buena práctica)
+	msg.post(".", "acquire_input_focus")
+
+	-- Variable para almacenar temporalmente la siguiente escena (si fuera necesario)
+	self.proxima_escena = nil
+
+	-- Carga la escena inicial. Asumimos que el proxy se llama "#menu" en el editor.
+	msg.post("#menu", "load")
+end
+
+-- Función local para gestionar la lógica de carga y descarga
+local function cambiar_a_escena(nueva_escena)
+	print("Función cambiar escena llamada con:", nueva_escena)
+
+	-- CASO 1: Reiniciar la misma escena (Reload)
+	if nueva_escena == GestorJuego.escena_actual then
+		-- Marca en el gestor global que estamos recargando
+		GestorJuego.esta_recargando = true
+		-- Descarga el proxy de la escena actual (ej: "#nivel_1")
+		msg.post("#"..GestorJuego.escena_actual, "unload")
+
+		-- CASO 2: Cambiar a una escena diferente
+	else
+		-- Descarga la escena vieja
+		msg.post("#"..GestorJuego.escena_actual, "unload")
+		-- Actualiza la variable global con el nombre de la nueva escena
+		GestorJuego.escena_actual = nueva_escena
+		-- Carga el proxy de la nueva escena (ej: "#gameover")
+		msg.post("#"..GestorJuego.escena_actual, "load")
+	end
+end
+
+function on_message(self, id_mensaje, mensaje, remitente)
+	-- Mensaje del sistema Defold: El proxy ya terminó de cargar en memoria
+	if id_mensaje == hash("proxy_loaded") then
+		-- Activa la escena para que se vea y funcione
+		msg.post(sender, "enable")
+
+		-- Mensaje del sistema Defold: El proxy terminó de descargarse
+	elseif id_mensaje == hash("proxy_unloaded") then
+		-- Si estábamos en proceso de recarga (mismo nivel)
+		if GestorJuego.esta_recargando then
+			-- Terminamos de recargar, reseteamos la bandera
+			GestorJuego.esta_recargando = false
+			-- Volvemos a cargar la escena actual (que acabamos de descargar)
+			msg.post("#"..GestorJuego.escena_actual, "load")
+		end
+
+		-- Mensaje personalizado: Solicitud de cambio de escena (viene del GUI o del Jugador)
+	elseif id_mensaje == hash("cambiar_escena") and mensaje.escena then
+		cambiar_a_escena(mensaje.escena)
+	end
+end
